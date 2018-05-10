@@ -24,6 +24,7 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 	public function __construct()
 	{
 		global $DIC;
+
 		if (isset($DIC["ui"]))
 		{
 			$this->main_tpl = $DIC->ui()->mainTemplate();
@@ -41,6 +42,11 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 		global $DIC;
 
 		$access = $DIC->access();
+
+		if (!isset($DIC["lng"]))
+		{
+			return false;
+		}
 
 		if ($access->checkAccess("write", "", ROOT_FOLDER_ID))
 		{

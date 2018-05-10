@@ -142,7 +142,11 @@ class ilUFreibContainerRenderer extends ilContainerRenderer
 				$deck = $f->deck($cards)->withNormalCardsSize();
 
 
-				$a_block_tpl->setVariable("CONTAINER_ROWS", $renderer->render($deck));
+				$html = $renderer->render($deck);
+
+				$html = preg_replace('/###linkframe###([^#]*)###/i', '" target="$1', $html);
+
+				$a_block_tpl->setVariable("CONTAINER_ROWS", $html);
 
 				return true;
 			}
