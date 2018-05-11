@@ -63,18 +63,21 @@ class ilUFreibCourseItemImage
 		$upload = $DIC->upload();
 		$upload->process();
 		$res = $upload->getResults();
-		$first = current($res);
-		$name = $first->getName();
-		$ext = pathinfo($first->getName(), PATHINFO_EXTENSION);
-		$new_name = $a_item_ref_id.".".strtolower($ext);
-		$upload->moveOneFileTo($first, $dir,
-			ILIAS\FileUpload\Location::STORAGE, $new_name, true);
+		if ($first = current($res))
+		{
+			if ($first->getName() != "")
+			{
+				$ext = pathinfo($first->getName(), PATHINFO_EXTENSION);
+				$new_name = $a_item_ref_id . "." . strtolower($ext);
+				$upload->moveOneFileTo($first, $dir,
+					ILIAS\FileUpload\Location::STORAGE, $new_name, true);
 
-		$fullpath = CLIENT_DATA_DIR."/".$dir."/".$new_name;
-		list($width, $height, $type, $attr) = getimagesize($fullpath);
-		$min = min($width, $height);
-		ilUtil::execConvert($fullpath . "[0] -geometry ".$min."x".$min."^ -gravity center -extent ".$min."x".$min." ".$fullpath);
-
+				$fullpath = CLIENT_DATA_DIR . "/" . $dir . "/" . $new_name;
+				list($width, $height, $type, $attr) = getimagesize($fullpath);
+				$min = min($width, $height);
+				ilUtil::execConvert($fullpath . "[0] -geometry " . $min . "x" . $min . "^ -gravity center -extent " . $min . "x" . $min . " " . $fullpath);
+			}
+		}
 
 		//$upload->moveFilesTo($this->getDir($a_item_ref_id), ILIAS\FileUpload\Location::STORAGE);
 

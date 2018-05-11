@@ -1,0 +1,16 @@
+#ilTopBar div.ilTopTitle {
+	font-family: inherit;
+}
+
+h1.media-heading, div.il_HeaderInner h1.ilHeader {
+	font-family: inherit;
+}
+
+.ilFreibPsyContItems {
+	margin: 15px -10px -10px -10px;
+}
+
+.ilFreibPsyContItems h5 {
+	margin: 0;
+	font-size: 100%;
+}

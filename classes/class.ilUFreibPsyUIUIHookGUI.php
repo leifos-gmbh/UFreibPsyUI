@@ -29,6 +29,7 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 		{
 			$this->main_tpl = $DIC->ui()->mainTemplate();
 		}
+
 	}
 
 	/**
@@ -41,18 +42,23 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 	{
 		global $DIC;
 
-		$access = $DIC->access();
-
-		if (!isset($DIC["lng"]))
+		if (!isset($DIC["lng"]) || !isset($DIC["ilDB"]) || !isset($DIC["ilUser"]))
 		{
 			return false;
 		}
 
-		if ($access->checkAccess("write", "", ROOT_FOLDER_ID))
+		$settings = new ilSetting("ufreibpsy");
+
+		if (($r = $settings->get("role")) > 0)
 		{
-			return false;
+			$roles_of_user = $DIC->rbac()->review()->assignedRoles($DIC->user()->getId());
+			if (in_array((string) $r, $roles_of_user))
+			{
+				return true;
+			}
 		}
-		return true;
+
+		return false;
 	}
 
 	/**
@@ -65,12 +71,15 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 	{
 		global $DIC;
 
+
+		$view = false;
+
 		if (isset($DIC["ilHelp"]))
 		{
 			$help = $DIC["ilHelp"];
 			if (in_array($help->getScreenId(), array("crs/view_content/", "crs/view_content/view_content")))
 			{
-				return true;
+				$view = true;
 			}
 		}
 
@@ -79,10 +88,20 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 			$ilCtrl = $DIC["ilCtrl"];
 			if (strtolower($ilCtrl->getCmdClass()) == "ilobjcoursegui" && in_array($ilCtrl->getCmd(), array("view", "")))
 			{
-				return true;
+				$view = true;
 			}
 		}
 
+		if ($view)
+		{
+			$plugin = $this->getPluginObject();
+			$plugin->includeClass("class.ilUFreibPsyUICourses.php");
+			$courses = new ilUFreibPsyUICourses();
+			if (in_array((int) $_GET["ref_id"], $courses->getAll()))
+			{
+				return true;
+			}
+		}
 
 		return false;
 	}
@@ -97,17 +116,32 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 	 */
 	function getHTML($a_comp, $a_part, $a_par = array())
 	{
+		global $DIC;
+
+		if ($a_comp == "Services/MainMenu" && !in_array($a_part, array("main_menu_list_entries")))
+		{
+			$DIC->ui()->mainTemplate()->addCss($this->getPluginObject()->getStyleSheetLocation("freibpsy_general.css"));
+		}
+
 		if ($this->isStudyParticipant())
 		{
-			if ($a_comp == "" && $a_part == "template_get")
+			if ($this->isCourseContentView())
 			{
-				if ($a_par["tpl_id"] == "Services/Locator/tpl.locator.html")
+				if ($a_comp == "Services/MainMenu" && !in_array($a_part, array("main_menu_list_entries")))
 				{
-					return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
+					if ($this->isCourseContentView())
+					{
+						$DIC->ui()->mainTemplate()->addCss($this->getPluginObject()->getStyleSheetLocation("freibpsy_restricted.css"));
+					}
 				}
 
-				if ($this->isCourseContentView())
+				if ($a_comp == "" && $a_part == "template_get")
 				{
+					if ($a_par["tpl_id"] == "Services/Locator/tpl.locator.html")
+					{
+						return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
+					}
+
 					if (in_array($a_par["tpl_id"], array("Services/UIComponent/Tabs/tpl.tabs.html",
 						"Services/UIComponent/Tabs/tpl.sub_tabs.html")))
 					{
@@ -121,15 +155,15 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 							return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => $this->getCourseHTML());
 						}
 					}
-				}
 
-				if (strpos($a_par["tpl_id"], "cont"))
-				{
-				/*	var_dump($a_comp);
-					var_dump($a_par);
-					exit;*/
+					if (strpos($a_par["tpl_id"], "cont"))
+					{
+						/*	var_dump($a_comp);
+							var_dump($a_par);
+							exit;*/
+					}
+					//return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
 				}
-				//return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
 			}
 		}
 

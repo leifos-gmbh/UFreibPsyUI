@@ -139,7 +139,8 @@ class ilUFreibContainerRenderer extends ilContainerRenderer
 				$renderer = $DIC->ui()->renderer();
 
 				//Create a deck with large cards
-				$deck = $f->deck($cards)->withNormalCardsSize();
+				//$deck = $f->deck($cards)->withNormalCardsSize();
+				$deck = $f->deck($cards)->withSmallCardsSize();
 
 
 				$html = $renderer->render($deck);

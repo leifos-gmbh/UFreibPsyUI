@@ -44,7 +44,7 @@ class ilUFreibCourseItemTableGUI extends ilTable2GUI
 
 		$this->setLimit(9999);
 
-		$this->setTitle($lng->txt("courses"));
+		$this->setTitle($this->plugin->txt("items"));
 		$this->addColumn($lng->txt("image"));
 		$this->addColumn($lng->txt("title"), "title");
 		$this->addColumn($lng->txt("actions"));

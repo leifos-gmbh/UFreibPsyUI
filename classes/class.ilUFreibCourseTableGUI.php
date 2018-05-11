@@ -80,7 +80,7 @@ class ilUFreibCourseTableGUI extends ilTable2GUI
 		$link = [];
 		$link[] = $ui->factory()->link()->standard($lng->txt("remove"),
 			$ctrl->getLinkTarget($this->parent_obj, "removeCourse"));
-		$link[] = $ui->factory()->link()->standard($lng->txt("edit_items"),
+		$link[] = $ui->factory()->link()->standard($this->plugin->txt("edit_items"),
 			$ctrl->getLinkTarget($this->parent_obj, "listItems"));
 		$dd = $ui->factory()->dropdown()->standard($link);
 		$this->tpl->setVariable("ACTIONS", $ui->renderer()->render($dd));

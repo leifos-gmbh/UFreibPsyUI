@@ -51,6 +51,11 @@ class ilUFreibPsyUIConfigGUI extends ilPluginConfigGUI
 	protected $crs_ref_id;
 
 	/**
+	 * @var ilTabsGUI
+	 */
+	protected $tabs;
+
+	/**
 	 * Handles all commmands, default is "configure"
 	 */
 	function performCommand($cmd)
@@ -61,6 +66,11 @@ class ilUFreibPsyUIConfigGUI extends ilPluginConfigGUI
 		$this->main_tpl = $DIC->ui()->mainTemplate();
 		$this->toolbar = $DIC->toolbar();
 		$this->lng = $DIC->language();
+		$this->rbacreview = $DIC->rbac()->review();
+
+		$this->settings = new ilSetting("ufreibpsy");
+
+		$this->tabs = $DIC->tabs();
 
 		$plugin = $this->getPluginObject();
 		$plugin->includeClass("class.ilUFreibPsyUICourses.php");
@@ -84,10 +94,94 @@ class ilUFreibPsyUIConfigGUI extends ilPluginConfigGUI
 	}
 
 	/**
-	 * Configure (list courses)
+	 * Add tabs
+	 *
+	 * @param
+	 * @return
+	 */
+	protected function addTabs($a_active)
+	{
+		$tabs = $this->tabs;
+		$pl = $this->getPluginObject();
+		$ctrl = $this->ctrl;
+
+		$tabs->addTab("general", $pl->txt("general"), $ctrl->getLinkTarget($this, "configure"), "");
+		$tabs->addTab("container", $pl->txt("crs_container"), $ctrl->getLinkTarget($this, "listContainer"));
+		$tabs->activateTab($a_active);
+	}
+
+	//
+	// General
+	//
+
+	/**
+	 *
 	 */
 	function configure()
 	{
+		$this->addTabs("general");
+		$form = $this->initGeneralForm();
+		$this->main_tpl->setContent($form->getHTML());
+	}
+
+	/**
+	 * Init general form.
+	 */
+	public function initGeneralForm()
+	{
+		$pl = $this->getPluginObject();
+
+		include_once("Services/Form/classes/class.ilPropertyFormGUI.php");
+		$form = new ilPropertyFormGUI();
+
+		// role selector
+		$options = array(
+			"" => $this->lng->txt("none"),
+		);
+		$all_gl_roles = $this->rbacreview->getRoleListByObject(ROLE_FOLDER_ID);
+		foreach ($all_gl_roles as $obj_data)
+		{
+			$options[$obj_data["obj_id"]] = $obj_data["title"];
+		}
+		$si = new ilSelectInputGUI($this->lng->txt("role"), "role");
+		$si->setInfo($pl->txt("role_info"));
+		$si->setValue($this->settings->get("role"));
+		$si->setOptions($options);
+		$form->addItem($si);
+
+		$form->addCommandButton("saveGeneral", $this->lng->txt("save"));
+
+		$form->setTitle($pl->txt("general"));
+		$form->setFormAction($this->ctrl->getFormAction($this));
+
+		return $form;
+	}
+
+	/**
+	 * Save general form
+	 */
+	public function saveGeneral()
+	{
+		$form = $this->initGeneralForm();
+		if ($form->checkInput())
+		{
+			$this->settings->set("role", (int) $_POST["role"]);
+			ilUtil::sendSuccess($this->lng->txt("msg_obj_modified"), true);
+		}
+		$this->ctrl->redirect($this, "configure");
+	}
+
+	//
+	// Container
+	//
+
+	/**
+	 * Configure (list container)
+	 */
+	function listContainer()
+	{
+		$this->addTabs("container");
+
 		$plugin = $this->getPluginObject();
 		$main_tpl = $this->main_tpl;
 
@@ -110,8 +204,8 @@ class ilUFreibPsyUIConfigGUI extends ilPluginConfigGUI
 		include_once("./Services/Repository/classes/class.ilRepositorySelectorExplorerGUI.php");
 		$exp = new ilRepositorySelectorExplorerGUI($this, "selectCourse",
 			$this, "addCourse", "crs_ref_id");
-		$exp->setTypeWhiteList(array("root", "cat", "crs"));
-		$exp->setClickableTypes(array("crs"));
+		$exp->setTypeWhiteList(array("root", "cat", "crs", "grp", "fold"));
+		$exp->setClickableTypes(array("root", "cat", "crs", "grp", "fold"));
 		if (!$exp->handleCommand())
 		{
 			$main_tpl->setContent($exp->getHTML());
@@ -124,7 +218,7 @@ class ilUFreibPsyUIConfigGUI extends ilPluginConfigGUI
 	protected function addCourse()
 	{
 		$this->courses->add((int) $_GET["crs_ref_id"]);
-		$this->ctrl->redirect($this, "configure");
+		$this->ctrl->redirect($this, "listContainer");
 	}
 
 	/**
@@ -133,7 +227,7 @@ class ilUFreibPsyUIConfigGUI extends ilPluginConfigGUI
 	protected function removeCourse()
 	{
 		$this->courses->remove((int) $_GET["crs_ref_id"]);
-		$this->ctrl->redirect($this, "configure");
+		$this->ctrl->redirect($this, "listContainer");
 	}
 
 
@@ -149,6 +243,7 @@ class ilUFreibPsyUIConfigGUI extends ilPluginConfigGUI
 		$plugin = $this->getPluginObject();
 		$main_tpl = $this->main_tpl;
 
+		$this->tabs->setBackTarget($this->getPluginObject()->txt("crs_container"), $this->ctrl->getLinkTarget($this, "listContainer"));
 
 		$plugin->includeClass("class.ilUFreibCourseItemTableGUI.php");
 		$table = new ilUFreibCourseItemTableGUI($this, "listItems",
@@ -176,6 +271,8 @@ class ilUFreibPsyUIConfigGUI extends ilPluginConfigGUI
 
 		//
 		$ti = new ilImageFileInputGUI($this->lng->txt("image"), "image");
+		$ti->setImage($this->images->getImageName($this->crs_item_ref_id));
+		$ti->setALlowDeletion(true);
 		$form->addItem($ti);
 
 		$form->addCommandButton("saveImage", $this->lng->txt("save"));
@@ -192,6 +289,10 @@ class ilUFreibPsyUIConfigGUI extends ilPluginConfigGUI
 	 */
 	protected function saveImage()
 	{
+		if ($_POST["image_delete"])
+		{
+			$this->images->delete($this->crs_item_ref_id);
+		}
 		$this->images->upload($this->crs_item_ref_id);
 		$this->ctrl->redirect($this, "listItems");
 	}
