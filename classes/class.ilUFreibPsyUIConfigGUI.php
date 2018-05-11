@@ -205,7 +205,8 @@ class ilUFreibPsyUIConfigGUI extends ilPluginConfigGUI
 		$exp = new ilRepositorySelectorExplorerGUI($this, "selectCourse",
 			$this, "addCourse", "crs_ref_id");
 		$exp->setTypeWhiteList(array("root", "cat", "crs", "grp", "fold"));
-		$exp->setClickableTypes(array("root", "cat", "crs", "grp", "fold"));
+		//$exp->setClickableTypes(array("root", "cat", "crs", "grp", "fold"));
+		$exp->setClickableTypes(array("crs"));
 		if (!$exp->handleCommand())
 		{
 			$main_tpl->setContent($exp->getHTML());
