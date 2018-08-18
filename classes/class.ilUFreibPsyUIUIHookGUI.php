@@ -132,6 +132,8 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 					if ($this->isCourseContentView())
 					{
 						$DIC->ui()->mainTemplate()->addCss($this->getPluginObject()->getStyleSheetLocation("freibpsy_restricted.css"));
+						$DIC->ui()->mainTemplate()->addJavaScript(
+							$this->getPluginObject()->getDirectory()."/js/UFreibPsyUI.js");
 					}
 				}
 

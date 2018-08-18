@@ -53,6 +53,8 @@ class ilUFreibContainerContentGUI extends ilContainerByTypeContentGUI
 			, $sorting->getBlockPositions()
 		);
 		$this->renderer->setPlugin($this->getPlugin());
+
+
 	}
 
 	/**

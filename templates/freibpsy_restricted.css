@@ -13,3 +13,12 @@
 #mainscrolldiv div.il_HeaderInner {
 	margin-bottom: 40px;
 }
+
+div.caption > h5.card-title > a {
+	display: block;
+	padding: 9px;
+}
+
+.il-deck div.caption {
+	padding: 0;
+}
