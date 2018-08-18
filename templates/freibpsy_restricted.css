@@ -9,3 +9,7 @@
 #il_screen_id {
 	display:none;
 }
+
+#mainscrolldiv div.il_HeaderInner {
+	margin-bottom: 40px;
+}

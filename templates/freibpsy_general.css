@@ -14,3 +14,7 @@ h1.media-heading, div.il_HeaderInner h1.ilHeader {
 	margin: 0;
 	font-size: 100%;
 }
+
+.row  h3.ilHeader.ilContainerBlockHeader {
+	color: #606060;
+}

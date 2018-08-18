@@ -223,11 +223,34 @@ class ilUFreibPsyUIConfigGUI extends ilPluginConfigGUI
 	}
 
 	/**
+	 * Confirm
+	 */
+	function confirmRemoveCourse()
+	{
+		$main_tpl = $this->main_tpl;
+		$ctrl = $this->ctrl;
+		$lng = $this->lng;
+
+		include_once("./Services/Utilities/classes/class.ilConfirmationGUI.php");
+		$cgui = new ilConfirmationGUI();
+		$cgui->setFormAction($ctrl->getFormAction($this));
+		$cgui->setHeaderText($this->getPluginObject()->txt("remove_course_config"));
+		$cgui->setCancel($lng->txt("cancel"), "listContainer");
+		$cgui->setConfirm($lng->txt("remove"), "removeCourse");
+
+		$cgui->addItem("crs_ref_id", $_GET["crs_ref_id"],
+			ilObject::_lookupTitle(ilObject::_lookupObjectId($_GET["crs_ref_id"])));
+
+		$main_tpl->setContent($cgui->getHTML());
+	}
+
+
+	/**
 	 * Remove course
 	 */
 	protected function removeCourse()
 	{
-		$this->courses->remove((int) $_GET["crs_ref_id"]);
+		$this->courses->remove((int) $_POST["crs_ref_id"]);
 		$this->ctrl->redirect($this, "listContainer");
 	}
 

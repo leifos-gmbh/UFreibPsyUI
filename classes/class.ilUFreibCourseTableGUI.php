@@ -79,7 +79,7 @@ class ilUFreibCourseTableGUI extends ilTable2GUI
 		$ctrl->setParameter($this->parent_obj, "crs_ref_id", $a_set["ref_id"]);
 		$link = [];
 		$link[] = $ui->factory()->link()->standard($lng->txt("remove"),
-			$ctrl->getLinkTarget($this->parent_obj, "removeCourse"));
+			$ctrl->getLinkTarget($this->parent_obj, "confirmRemoveCourse"));
 		$link[] = $ui->factory()->link()->standard($this->plugin->txt("edit_items"),
 			$ctrl->getLinkTarget($this->parent_obj, "listItems"));
 		$dd = $ui->factory()->dropdown()->standard($link);

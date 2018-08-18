@@ -5,3 +5,4 @@ crs_container#:#Kurse/Container
 role_info#:#Nur Benutzer dieser Rolle werden die Kachelansicht sehen.
 edit_items#:#Objekte bearbeiten
 items#:#Objekte
+remove_course_config#:#Soll diese Kurskonfiguration wirklich entfernt werden?
