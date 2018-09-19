@@ -22,3 +22,7 @@ div.caption > h5.card-title > a {
 .il-deck div.caption {
 	padding: 0;
 }
+
+.ilFreibPsyContItems .il-card a {
+	overflow: hidden;
+}
