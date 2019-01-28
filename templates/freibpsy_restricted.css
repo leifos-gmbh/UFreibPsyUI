@@ -26,3 +26,8 @@ div.caption > h5.card-title > a {
 .ilFreibPsyContItems .il-card a {
 	overflow: hidden;
 }
+
+.ilFreibPsyContItems .il-card {
+	padding: 0;
+	background-color: #ffffff;
+}
