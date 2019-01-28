@@ -118,7 +118,7 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 	{
 		global $DIC;
 
-		if ($a_comp == "Services/MainMenu" && !in_array($a_part, array("main_menu_list_entries")))
+		if ($a_comp == "Services/MainMenu" && in_array($a_part, array("main_menu_list_entries")))
 		{
 			$DIC->ui()->mainTemplate()->addCss($this->getPluginObject()->getStyleSheetLocation("freibpsy_general.css"));
 		}
