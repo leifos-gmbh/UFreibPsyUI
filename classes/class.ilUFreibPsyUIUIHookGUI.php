@@ -127,7 +127,7 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 		{
 			if ($this->isCourseContentView())
 			{
-				if ($a_comp == "Services/MainMenu" && !in_array($a_part, array("main_menu_list_entries")))
+				if ($a_comp == "Services/MainMenu" && in_array($a_part, array("main_menu_list_entries")))
 				{
 					if ($this->isCourseContentView())
 					{
