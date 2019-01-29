@@ -25,6 +25,7 @@ div.caption > h5.card-title > a {
 
 .ilFreibPsyContItems .il-card a {
 	overflow: hidden;
+	unicode-bidi: normal;
 }
 
 .ilFreibPsyContItems .il-card {
