@@ -125,26 +125,24 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 
 		if ($this->isStudyParticipant())
 		{
-			if ($this->isCourseContentView())
-			{
-				if ($a_comp == "Services/MainMenu" && in_array($a_part, array("main_menu_list_entries")))
-				{
-					if ($this->isCourseContentView())
-					{
-						$DIC->ui()->mainTemplate()->addCss($this->getPluginObject()->getStyleSheetLocation("freibpsy_restricted.css"));
-						$DIC->ui()->mainTemplate()->addJavaScript(
-							$this->getPluginObject()->getDirectory()."/js/UFreibPsyUI.js");
-					}
-				}
+            if ($a_comp == "" && $a_part == "template_get")
+            {
+                if ($a_par["tpl_id"] == "src/UI/templates/default/MainControls/tpl.metabar.html")
+                {
+                    $DIC->ui()->mainTemplate()->addCss($this->getPluginObject()->getStyleSheetLocation("freibpsy_restricted.css"));
+                    $DIC->ui()->mainTemplate()->addJavaScript(
+                        $this->getPluginObject()->getDirectory()."/js/UFreibPsyUI.js");
+                }
 
-				if ($a_comp == "" && $a_part == "template_get")
-				{
-					if ($a_par["tpl_id"] == "Services/Locator/tpl.locator.html")
-					{
-						return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
-					}
+                if ($a_par["tpl_id"] == "Services/Locator/tpl.locator.html")
+                {
+                    return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
+                }
 
-					if (in_array($a_par["tpl_id"], array("Services/UIComponent/Tabs/tpl.tabs.html",
+                if ($this->isCourseContentView())
+                {
+
+                    if (in_array($a_par["tpl_id"], array("Services/UIComponent/Tabs/tpl.tabs.html",
 						"Services/UIComponent/Tabs/tpl.sub_tabs.html")))
 					{
 						return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");

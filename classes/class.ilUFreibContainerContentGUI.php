@@ -51,6 +51,7 @@ class ilUFreibContainerContentGUI extends ilContainerByTypeContentGUI
 			, $this->getContainerGUI()->isMultiDownloadEnabled()
 			, $this->getContainerGUI()->isActiveOrdering() && (get_class($this) != "ilContainerObjectiveGUI") // no block sorting in objective view
 			, $sorting->getBlockPositions()
+            , $this->getContainerGUI()
 		);
 		$this->renderer->setPlugin($this->getPlugin());
 
@@ -108,7 +109,7 @@ class ilUFreibContainerContentGUI extends ilContainerByTypeContentGUI
 		$image = $image->withAction($def_command);
 
 		//Define the card by using the image and add a new section with a button
-		$card = $f->card(
+		$card = $f->card()->standard(
 			$a_item_data["title"],
 			$image
 		)->withTitleAction($def_command);

@@ -1,6 +1,6 @@
-#imgtree {
+/*#imgtree {
 	display:none;
-}
+}*/
 
 #tttt .dropdown-toggle {
 	display:none;
@@ -10,9 +10,10 @@
 	display:none;
 }
 
+/*
 #mainscrolldiv div.il_HeaderInner {
 	margin-bottom: 40px;
-}
+}*/
 
 div.caption > h5.card-title > a {
 	display: block;
@@ -31,4 +32,13 @@ div.caption > h5.card-title > a {
 .ilFreibPsyContItems .il-card {
 	padding: 0;
 	background-color: #ffffff;
+}
+
+div.breadcrumbs {
+	display: none;
+}
+
+.il-layout-page {
+	-ms-grid-rows: 60px 0px 1fr;
+	grid-template-rows: 60px 0px 1fr;
 }
