@@ -106,6 +106,31 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 		return false;
 	}
 
+    /**
+     * Checks if current view is the one given as parameter
+     *
+     * @param string $cmd_class
+     * @return bool
+     */
+    protected function isView($cmd_class)
+    {
+        global $DIC;
+
+
+        $view = false;
+
+        if (isset($DIC["ilCtrl"]))
+        {
+            $ilCtrl = $DIC["ilCtrl"];
+            if (strtolower($ilCtrl->getCmdClass()) == $cmd_class)
+            {
+                $view = true;
+            }
+        }
+
+        return $view;
+    }
+
 
 
 	/**
@@ -156,14 +181,34 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 						}
 					}
 
-					if (strpos($a_par["tpl_id"], "cont"))
-					{
-						/*	var_dump($a_comp);
-							var_dump($a_par);
-							exit;*/
-					}
-					//return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
 				}
+
+                if($this->isView("ilmailfoldergui")) {
+
+                    if (in_array($a_par["tpl_id"], array("Services/UIComponent/Tabs/tpl.tabs.html")))
+                    {
+                        $DIC->logger()->usr()->info("Is mailfoldergui");
+                        $DIC->logger()->usr()->dump($a_par["tpl_id"]);
+
+                        $tpl = new ilTemplate(
+                            "tpl.tabs.html",
+                            true,
+                            true,
+                            "Services/UIComponent/Tabs"
+                        );
+
+                        $tpl->setVariable("{TAB_TEXT}", "Blub");
+
+
+                        return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
+                    }
+
+                }
+
+                if($this->isView("ilmailformgui")) {
+                    $DIC->logger()->usr()->info("This is the mailformgui");
+                    $DIC->logger()->usr()->dump($a_par["tpl_id"]);
+                }
 			}
 		}
 
