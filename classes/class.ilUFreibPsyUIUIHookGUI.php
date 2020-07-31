@@ -18,6 +18,8 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 
 	static protected $course_content_called = false;
 
+	static protected $tabs_replaced = false;
+
 	/**
 	 * Constructor
 	 */
@@ -187,9 +189,21 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 
                     if (in_array($a_par["tpl_id"], array("Services/UIComponent/Tabs/tpl.tabs.html")))
                     {
-                        $DIC->logger()->usr()->info("Is mailfoldergui");
-                        $DIC->logger()->usr()->dump($a_par["tpl_id"]);
+                        if (!self::$tabs_replaced) {
+                            $DIC->logger()->usr()->info("Is mailfoldergui");
+                            $DIC->logger()->usr()->dump($a_par["tpl_id"]);
 
+                            $tabs = new ilTabsGUI();
+                            $links = $this->getMailLinks();
+                            $tabs->addTab("test", "inbox", $links["inbox"]);
+                            $tabs->addTab("test", "test", "test");
+
+                            self::$tabs_replaced = true;
+                            return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => $tabs->getHTML());
+                        }
+
+
+                        /*
                         $tpl = new ilTemplate(
                             "tpl.tabs.html",
                             true,
@@ -198,9 +212,10 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
                         );
 
                         $tpl->setVariable("{TAB_TEXT}", "Blub");
+                        $tpl->get();*/
 
 
-                        return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
+                        //return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
                     }
 
                 }
@@ -214,6 +229,41 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 
 		return array("mode" => ilUIHookPluginGUI::KEEP, "html" => "");
 	}
+
+    /**
+     * Modify GUI objects, before they generate ouput
+     *
+     * @param string $a_comp component
+     * @param string $a_part string that identifies the part of the UI that is handled
+     * @param string $a_par array of parameters (depend on $a_comp and $a_part)
+     */
+    function modifyGUI($a_comp, $a_part, $a_par = array())
+    {
+return;
+        if ($this->isStudyParticipant() && $this->isView("ilmailfoldergui")) {
+
+            // currently only implemented for $ilTabsGUI
+
+            // tabs hook
+            // note that you currently do not get information in $a_comp
+            // here. So you need to use general GET/POST information
+            // like $_GET["baseClass"], $ilCtrl->getCmdClass/getCmd
+            // to determine the context.
+            if ($a_part == "tabs") {
+                // $a_par["tabs"] is ilTabsGUI object
+
+                /** @var $tabs ilTabsGUI */
+                $tabs = $a_par["tabs"];
+
+                $links = $this->getMailLinks();
+
+                // add a tab (always)
+                $tabs->clearTargets();
+                $tabs->addTab("test", "inbox", $links["inbox"]);
+                $tabs->addTab("test", "test", "test");
+            }
+        }
+    }
 
 	/**
 	 * Get course HTML
@@ -232,6 +282,31 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 		return $container_view->getMainContent();
 	}
 
+    /**
+     *
+     * @param
+     * @return
+     */
+    protected function getMailLinks()
+    {
+        global $DIC;
+
+        $ctrl = $DIC->ctrl();
+
+        $mail_tree = new ilTree($DIC->user()->getId());
+        $mail_tree->setTableNames('mail_tree', 'mail_obj_data');
+        $childs = $mail_tree->getChilds($mail_tree->readRootId());
+
+        $links = [];
+        foreach ($childs as $c) {
+            if ($c["m_type"] === "inbox") {     // oder "sent"
+                $ctrl->setParameterByClass("ilmailfoldergui", "mobj_id", $c["obj_id"]);
+                $links["inbox"] = $ctrl->getLinkTargetByClass("ilmailfoldergui", "");
+            }
+        }
+
+        return $links;
+    }
 
 }
 ?>
