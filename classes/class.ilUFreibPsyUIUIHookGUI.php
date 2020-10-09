@@ -189,6 +189,7 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 		{
             if ($a_comp == "" && $a_part == "template_get")
             {
+                $this->triggerMailReadEvent($a_par);
                 if ($a_par["tpl_id"] == "src/UI/templates/default/MainControls/tpl.metabar.html")
                 {
                     $DIC->ui()->mainTemplate()->addCss($this->getPluginObject()->getStyleSheetLocation("freibpsy_restricted.css"));
@@ -357,7 +358,10 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
             }
         }
 
-        $e_coaches = explode(",",$udf_userdata);
+        $e_coaches = [];
+        if ($udf_userdata) {
+            $e_coaches = explode(",", $udf_userdata);
+        }
 
         $coaches = array();
         foreach ($e_coaches as $coach_name)
@@ -458,4 +462,19 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
         return "";
     }
 
+    protected function triggerMailReadEvent($tpl) {
+        global $DIC;
+        $ctrl = $DIC->ctrl();
+        $user_id = $DIC->user()->getId();
+        $mail_id = (int) $_GET["mail_id"];
+        $app_event_handler = $DIC['ilAppEventHandler'];
+        if ($tpl["tpl_id"] == "Services/Form/tpl.property_form.html" &&
+            strtolower($ctrl->getCmdClass()) == "ilmailfoldergui" &&
+            $ctrl->getCmd() == "showMail") {
+            $app_event_handler->raise('Services/Mail', 'mailRead', [
+                'mail_id' => $mail_id,
+                'user_id' => $user_id
+            ]);
+        }
+    }
 }
