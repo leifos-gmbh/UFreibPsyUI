@@ -2,6 +2,8 @@
 
 /* Copyright (c) 2018 Leifos GmbH, GPL3, see docs/LICENSE */
 
+use ILIAS\UI\Component\Symbol\Icon\Standard;
+
 include_once("./Services/UIComponent/classes/class.ilUIHookPluginGUI.php");
 
 /**
@@ -19,6 +21,12 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 	static protected $course_content_called = false;
 
 	static protected $tabs_replaced = false;
+
+	static protected $coaches_called = false;
+
+	static protected $mail_notification_called = false;
+
+	const COACH_FIELD_NAME = "E-Coaches";
 
 	/**
 	 * Constructor
@@ -133,6 +141,31 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
         return $view;
     }
 
+    /**
+     * Checks if current command is the one given as parameter
+     *
+     * @param string $cmd
+     * @return bool
+     */
+    protected function isCommand($cmd)
+    {
+        global $DIC;
+
+
+        $command = false;
+
+        if (isset($DIC["ilCtrl"]))
+        {
+            $ilCtrl = $DIC["ilCtrl"];
+            if (strtolower($ilCtrl->getCmd()) == strtolower($cmd))
+            {
+                $command = true;
+            }
+        }
+
+        return $command;
+    }
+
 
 
 	/**
@@ -144,6 +177,8 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 	function getHTML($a_comp, $a_part, $a_par = array())
 	{
 		global $DIC;
+
+		$lng = $DIC->language();
 
 		if ($a_comp == "Services/MainMenu" && in_array($a_part, array("main_menu_list_entries")))
 		{
@@ -169,6 +204,55 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
                 if ($this->isCourseContentView())
                 {
 
+                    if(strpos(strtolower($a_par["tpl_id"]), "notification") !== false)
+                    {
+                        $DIC->logger()->usr()->dump($a_par["tpl_id"]);
+                    }
+
+                    if(!self::$coaches_called)
+                    {
+                        if (in_array($a_par["tpl_id"], array("src/UI/templates/default/Panel/tpl.secondary.html")))
+                        {
+                            $coach_cards = $this->getCoachCards();
+
+                            self::$coaches_called = true;
+                            return array("mode" => ilUIHookPluginGUI::PREPEND, "html" => $coach_cards);
+                        }
+                    }
+
+                    if(!self::$mail_notification_called)
+                    {
+                        if (in_array($a_par["tpl_id"], array("src/UI/templates/default/Panel/tpl.secondary.html")))
+                        {
+                            $tpl = new ilTemplate("src/UI/templates/default/Panel/tpl.secondary.html", true, true);
+                            $ui_factory = $DIC->ui()->factory();
+                            $notification = new \ILIAS\Mail\Provider\MailNotificationProvider($DIC);
+                            $ui_renderer = $DIC->ui()->renderer();
+
+                            foreach ($notification->getNotifications() as $isItem)
+                            {
+                                $item_renderer = $isItem->getRenderer($ui_factory);
+                                $comp = $item_renderer->getNotificationComponentForItem($isItem);
+                                $contents = $comp->getContents();
+
+
+                                $icon = $ui_factory->symbol()->icon()->standard(Standard::MAIL, 'mail')
+                                                  ->withIsOutlined(true);
+
+                                foreach ($contents as $content)
+                                {
+                                    if(!empty($content->getDescription()))
+                                    {
+                                        $tpl->setVariable("BODY_LEGACY", $ui_renderer->render($icon)  . " " . $content->getDescription());
+                                    }
+                                }
+                            }
+
+                            self::$mail_notification_called = true;
+                            return array("mode" => ilUIHookPluginGUI::PREPEND, "html" => $tpl->get());
+                        }
+                    }
+
                     if (in_array($a_par["tpl_id"], array("Services/UIComponent/Tabs/tpl.tabs.html",
 						"Services/UIComponent/Tabs/tpl.sub_tabs.html")))
 					{
@@ -185,85 +269,51 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 
 				}
 
-                if($this->isView("ilmailfoldergui")) {
+                if($this->isView("ilmailfoldergui") || $this->isView("ilmailformgui"))
+                {
+
+                    $DIC->ui()->mainTemplate()->addJavaScript(
+                        $this->getPluginObject()->getDirectory()."/js/UFreibPsyUI_Mail.js");
 
                     if (in_array($a_par["tpl_id"], array("Services/UIComponent/Tabs/tpl.tabs.html")))
                     {
+
+
                         if (!self::$tabs_replaced) {
-                            $DIC->logger()->usr()->info("Is mailfoldergui");
-                            $DIC->logger()->usr()->dump($a_par["tpl_id"]);
+
 
                             $tabs = new ilTabsGUI();
                             $links = $this->getMailLinks();
-                            $tabs->addTab("test", "inbox", $links["inbox"]);
-                            $tabs->addTab("test", "test", "test");
+                            $tabs->addTab("fold", $lng->txt('inbox'), $links["inbox"]);
+                            $tabs->addTab("sent", $lng->txt('sent'), $links["sent"]);
+                            $tabs->addTab("compose", $lng->txt('compose'), $links["compose"]);
+
+                            if($this->isView("ilmailformgui"))
+                            {
+                                $tabs->activateTab("compose");
+                            } else if ($this->isView("ilmailfoldergui") && $_GET["mobj_id"] == 550)
+                            {
+                                $tabs->activateTab("fold");
+                            } else {
+                                $tabs->activateTab("sent");
+                            }
 
                             self::$tabs_replaced = true;
                             return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => $tabs->getHTML());
                         }
-
-
-                        /*
-                        $tpl = new ilTemplate(
-                            "tpl.tabs.html",
-                            true,
-                            true,
-                            "Services/UIComponent/Tabs"
-                        );
-
-                        $tpl->setVariable("{TAB_TEXT}", "Blub");
-                        $tpl->get();*/
-
-
-                        //return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
                     }
 
-                }
+                    if (in_array($a_par["tpl_id"], array("Services/UIComponent/Toolbar/tpl.toolbar.html")) && !$this->isCommand("showmail"))
+                    {
+                        return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
+                    }
 
-                if($this->isView("ilmailformgui")) {
-                    $DIC->logger()->usr()->info("This is the mailformgui");
-                    $DIC->logger()->usr()->dump($a_par["tpl_id"]);
                 }
 			}
 		}
 
 		return array("mode" => ilUIHookPluginGUI::KEEP, "html" => "");
 	}
-
-    /**
-     * Modify GUI objects, before they generate ouput
-     *
-     * @param string $a_comp component
-     * @param string $a_part string that identifies the part of the UI that is handled
-     * @param string $a_par array of parameters (depend on $a_comp and $a_part)
-     */
-    function modifyGUI($a_comp, $a_part, $a_par = array())
-    {
-return;
-        if ($this->isStudyParticipant() && $this->isView("ilmailfoldergui")) {
-
-            // currently only implemented for $ilTabsGUI
-
-            // tabs hook
-            // note that you currently do not get information in $a_comp
-            // here. So you need to use general GET/POST information
-            // like $_GET["baseClass"], $ilCtrl->getCmdClass/getCmd
-            // to determine the context.
-            if ($a_part == "tabs") {
-                // $a_par["tabs"] is ilTabsGUI object
-
-                /** @var $tabs ilTabsGUI */
-                $tabs = $a_par["tabs"];
-
-                $links = $this->getMailLinks();
-
-                // add a tab (always)
-                $tabs->clearTargets();
-                $tabs->addTab("test", "inbox", $links["inbox"]);
-                $tabs->addTab("test", "test", "test");
-            }
-        }
-    }
 
 	/**
 	 * Get course HTML
@@ -285,12 +335,52 @@ return;
     /**
      *
      * @param
+     * @return array
+     */
+	protected function getCoaches()
+    {
+        global $DIC;
+
+        $udf_userdata = $DIC->user()->getUserDefinedData();
+
+        $userDefinedFields = ilUserDefinedFields::_getInstance();
+        $udf_definitions = $userDefinedFields->getVisibleDefinitions();
+
+        if(!empty($udf_definitions))
+        {
+            foreach ($udf_definitions as $udf_key => $udf_definition)
+            {
+                if($udf_definition["field_name"] === self::COACH_FIELD_NAME)
+                {
+                    $udf_userdata = $udf_userdata["f_".$udf_key];
+                }
+            }
+        }
+
+        $e_coaches = explode(",",$udf_userdata);
+
+        $coaches = array();
+        foreach ($e_coaches as $coach_name)
+        {
+            $coach_id = ilObjUser::_lookupId($coach_name);
+
+            if(!empty($coach_id))
+            {
+                $coaches[] = new ilObjUser($coach_id);
+            }
+        }
+
+        return $coaches;
+    }
+
+    /**
+     *
+     * @param
      * @return
      */
     protected function getMailLinks()
     {
         global $DIC;
-
         $ctrl = $DIC->ctrl();
 
         $mail_tree = new ilTree($DIC->user()->getId());
@@ -299,14 +389,73 @@ return;
 
         $links = [];
         foreach ($childs as $c) {
-            if ($c["m_type"] === "inbox") {     // oder "sent"
+            if ($c["m_type"] === "inbox" || $c["m_type"] === "sent") {
                 $ctrl->setParameterByClass("ilmailfoldergui", "mobj_id", $c["obj_id"]);
-                $links["inbox"] = $ctrl->getLinkTargetByClass("ilmailfoldergui", "");
+                $links[$c["m_type"]] = $ctrl->getLinkTargetByClass("ilmailfoldergui", "");
             }
         }
+
+        $coaches = $this->getCoaches();
+
+        $to_coaches= "";
+        $last_coach = end($coaches);
+        foreach ($coaches as $coach) {
+            if($coach->getLogin() != $last_coach->getLogin()) {
+                $to_coaches .= $coach->getLogin() . ",";
+            } else {
+                $to_coaches .= $coach->getLogin();
+            }
+
+        }
+
+        $ctrl->setParameterByClass("ilmailformgui", "rcp_to", $to_coaches);
+        $links['compose'] = $ctrl->getLinkTargetByClass("ilmailformgui", "mailUser");
 
         return $links;
     }
 
+    /**
+     * Creates Cards for all assigned E-Coaches of signed in user
+     *
+     *
+     * @return string
+     */
+    protected function getCoachCards()
+    {
+        global $DIC;
+
+        $factory     = $DIC->ui()->factory();
+        $ctrl        = $DIC->ctrl();
+        $ui_renderer = $DIC->ui()->renderer();
+
+        $coaches = $this->getCoaches();
+        foreach ($coaches as $coach)
+        {
+            $card = $factory->card()->standard($coach->getPublicName());
+            $avatar = $factory->image()->standard($coach->getPersonalPicturePath('big'), $coach->getPublicName());
+
+            //Bis zur finalen Entscheidung erstmal auskommentiert
+            /*if ($coach->hasPublicProfile()) {
+                $ctrl->setParameterByClass('ilpublicuserprofilegui', 'user', $coach->getId());
+                $public_profile_url = $ctrl->getLinkTargetByClass('ilpublicuserprofilegui', 'getHTML');
+
+                $modal = $factory->modal()->interruptive("Blub", "Blib", "#");
+
+                $avatar = $avatar->withAction($public_profile_url);
+                $card = $card->withTitleAction($modal->getShowSignal());
+            }*/
+
+            $card = $card->withImage($avatar);
+
+            $cards[] = $card;
+        }
+
+        if(!empty($cards))
+        {
+            return $ui_renderer->render($factory->deck($cards)->withLargeCardsSize());
+        }
+
+        return "";
+    }
+
 }
-?>

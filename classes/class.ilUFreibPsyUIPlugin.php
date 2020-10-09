@@ -18,6 +18,7 @@ class ilUFreibPsyUIPlugin extends ilUserInterfaceHookPlugin
 	{
 		return "UFreibPsyUI";
 	}
+
 }
 
 ?>

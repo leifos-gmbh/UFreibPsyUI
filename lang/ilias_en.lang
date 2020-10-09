@@ -6,3 +6,4 @@ role_info#:#The tile view will only be presented for users of this role.
 edit_items#:#Edit Items
 items#:#Items
 remove_course_config#:#Should this course configuration really be deleted?
+no_coaches_available#:#You have not been assigned an E-Coach yet.
