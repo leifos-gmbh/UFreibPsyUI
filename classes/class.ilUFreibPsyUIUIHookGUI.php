@@ -33,12 +33,6 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 	 */
 	public function __construct()
 	{
-		global $DIC;
-
-		if (isset($DIC["ui"]))
-		{
-			$this->main_tpl = $DIC->ui()->mainTemplate();
-		}
 
 	}
 
@@ -176,9 +170,14 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 	 */
 	function getHTML($a_comp, $a_part, $a_par = array())
 	{
-		global $DIC;
+        global $DIC, $tpl;
 
-		$lng = $DIC->language();
+        if ($tpl)
+        {
+            $main_tpl = $tpl;
+        }
+
+        $lng = $DIC->language();
 
 		if ($a_comp == "Services/MainMenu" && in_array($a_part, array("main_menu_list_entries")))
 		{
@@ -212,20 +211,15 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 
                     if(!self::$coaches_called)
                     {
-                        if (in_array($a_par["tpl_id"], array("src/UI/templates/default/Panel/tpl.secondary.html")))
+                        if (in_array($a_par["tpl_id"], array("Services/UIComponent/Tabs/tpl.tabs.html")))
                         {
                             $coach_cards = $this->getCoachCards();
 
                             self::$coaches_called = true;
-                            return array("mode" => ilUIHookPluginGUI::PREPEND, "html" => $coach_cards);
-                        }
-                    }
+                            //return array("mode" => ilUIHookPluginGUI::PREPEND, "html" => $coach_cards);
 
-                    if(!self::$mail_notification_called)
-                    {
-                        if (in_array($a_par["tpl_id"], array("src/UI/templates/default/Panel/tpl.secondary.html")))
-                        {
-                            $tpl = new ilTemplate("src/UI/templates/default/Panel/tpl.secondary.html", true, true);
+
+                            $stpl = new ilTemplate("src/UI/templates/default/Panel/tpl.secondary.html", true, true);
                             $ui_factory = $DIC->ui()->factory();
                             $notification = new \ILIAS\Mail\Provider\MailNotificationProvider($DIC);
                             $ui_renderer = $DIC->ui()->renderer();
@@ -244,13 +238,12 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
                                 {
                                     if(!empty($content->getDescription()))
                                     {
-                                        $tpl->setVariable("BODY_LEGACY", $ui_renderer->render($icon)  . " " . $content->getDescription());
+                                        $stpl->setVariable("BODY_LEGACY", $ui_renderer->render($icon)  . " " . $content->getDescription());
                                     }
                                 }
                             }
 
-                            self::$mail_notification_called = true;
-                            return array("mode" => ilUIHookPluginGUI::PREPEND, "html" => $tpl->get());
+                            $main_tpl->setRightContent($stpl->get().$coach_cards);
                         }
                     }
 
@@ -264,7 +257,7 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 					{
 						if (in_array($a_par["tpl_id"], array("Services/Container/tpl.container_page.html")))
 						{
-							return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => $this->getCourseHTML());
+//							return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => $this->getCourseHTML());
 						}
 					}
 
@@ -345,32 +338,30 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
         $udf_userdata = $DIC->user()->getUserDefinedData();
 
         $userDefinedFields = ilUserDefinedFields::_getInstance();
-        $udf_definitions = $userDefinedFields->getVisibleDefinitions();
-
-        if(!empty($udf_definitions))
-        {
-            foreach ($udf_definitions as $udf_key => $udf_definition)
-            {
-                if($udf_definition["field_name"] === self::COACH_FIELD_NAME)
-                {
-                    $udf_userdata = $udf_userdata["f_".$udf_key];
-                }
-            }
-        }
-
-        $e_coaches = [];
-        if ($udf_userdata) {
-            $e_coaches = explode(",", $udf_userdata);
-        }
+        $udf_definitions = $userDefinedFields->getDefinitions();
 
         $coaches = array();
-        foreach ($e_coaches as $coach_name)
-        {
-            $coach_id = ilObjUser::_lookupId($coach_name);
 
-            if(!empty($coach_id))
-            {
-                $coaches[] = new ilObjUser($coach_id);
+        if(!empty($udf_definitions)) {
+
+            foreach ($udf_definitions as $udf_key => $udf_definition) {
+                if ($udf_definition["field_name"] === self::COACH_FIELD_NAME) {
+                    $udf_userdata = $udf_userdata["f_" . $udf_key];
+                }
+            }
+
+            $e_coaches = [];
+
+            if ($udf_userdata) {
+                $e_coaches = explode(",", $udf_userdata);
+            }
+
+            foreach ($e_coaches as $coach_name) {
+                $coach_id = ilObjUser::_lookupId($coach_name);
+
+                if (!empty($coach_id)) {
+                    $coaches[] = new ilObjUser($coach_id);
+                }
             }
         }
 
@@ -456,7 +447,9 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 
         if(!empty($cards))
         {
-            return $ui_renderer->render($factory->deck($cards)->withLargeCardsSize());
+            $cards = $ui_renderer->render($factory->deck($cards)->withLargeCardsSize());
+            $cards = "<h3>E-Coaches</h3>".$cards;
+            return $cards;
         }
 
         return "";

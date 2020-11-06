@@ -15,6 +15,7 @@
 	margin-bottom: 40px;
 }*/
 
+/*
 div.caption > h5.card-title > a {
 	display: block;
 	padding: 9px;
@@ -33,12 +34,18 @@ div.caption > h5.card-title > a {
 	padding: 0;
 	background-color: #ffffff;
 }
+*/
 
-div.breadcrumbs {
-	display: none;
+div.breadcrumbs span.crumb {
+	visibility: hidden;
 }
 
+#il_right_col .il-deck .col-sm-12 {
+	width: 50%;
+}
+
+/*
 .il-layout-page {
 	-ms-grid-rows: 60px 0px 1fr;
 	grid-template-rows: 60px 0px 1fr;
-}
+}*/
