@@ -28,6 +28,8 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 
 	const COACH_FIELD_NAME = "E-Coaches";
 
+	protected $inbox_id = 0;
+
 	/**
 	 * Constructor
 	 */
@@ -285,7 +287,7 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
                             if($this->isView("ilmailformgui"))
                             {
                                 $tabs->activateTab("compose");
-                            } else if ($this->isView("ilmailfoldergui") && $_GET["mobj_id"] == 550)
+                            } else if ($this->isView("ilmailfoldergui") && $_GET["mobj_id"] == $this->inbox_id)
                             {
                                 $tabs->activateTab("fold");
                             } else {
@@ -387,6 +389,9 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
             if ($c["m_type"] === "inbox" || $c["m_type"] === "sent") {
                 $ctrl->setParameterByClass("ilmailfoldergui", "mobj_id", $c["obj_id"]);
                 $links[$c["m_type"]] = $ctrl->getLinkTargetByClass("ilmailfoldergui", "");
+            }
+            if ($c["m_type"] === "inbox") {
+                $this->inbox_id = $c["obj_id"];
             }
         }
 
