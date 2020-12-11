@@ -1,4 +1,6 @@
+
 $(function(){
+	document.body.classList.add('freib-psy-student-mail');
 	if($("select[name='selected_cmd2']").length) {
 		$("select[name='selected_cmd2'] option[value='moveMails_550']").remove();
 		$("select[name='selected_cmd2'] option[value='moveMails_551']").remove();

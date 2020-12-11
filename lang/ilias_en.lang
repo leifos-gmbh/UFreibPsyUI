@@ -7,3 +7,6 @@ edit_items#:#Edit Items
 items#:#Items
 remove_course_config#:#Should this course configuration really be deleted?
 no_coaches_available#:#You have not been assigned an E-Coach yet.
+e_coaches#:#My E-Coach
+ecoach_feedbacks#:#My E-Coach Feedbacks
+no_feebdack#:#You do not have any unread mails.

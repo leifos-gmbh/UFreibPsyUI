@@ -44,8 +44,81 @@ div.breadcrumbs span.crumb {
 	width: 50%;
 }
 
+div.il-card-repository-head {
+	visibility: hidden;
+}
+
+.ilContainerItemsContainer .il-card img {
+	cursor: pointer;
+}
+
+.ilContainerItemsContainer .il-card .caption {
+	display: none;
+}
+
+.ilContainerItemsContainer .il-card {
+	padding: 0;
+}
+
+.il-ecoaches img {
+	margin-right: auto;
+	margin-left: auto;
+	width: 100%;
+	height: auto;
+	display: block;
+	max-width: 100%;
+	vertical-align: middle;
+ }
+
+
 /*
 .il-layout-page {
 	-ms-grid-rows: 60px 0px 1fr;
 	grid-template-rows: 60px 0px 1fr;
 }*/
+
+.freib-psy-student-mail tr td:first-child,
+.freib-psy-student-mail tr td:last-child {
+	display:none;
+}
+
+.freib-psy-student-mail tr th:first-child,
+.freib-psy-student-mail tr th:last-child {
+	display:none;
+}
+
+.freib-psy-student-mail .ilTableCommandRowTop,
+.freib-psy-student-mail .ilTableCommandRow,
+.freib-psy-student-mail .ilTableSelectAll {
+	display:none;
+}
+
+.freib-psy-student-mail .ilToolbar {
+	display:none;
+}
+
+input[name='cmd[saveDraft]'] {
+	display:none;
+}
+
+#il_prop_cont_rcp_to {
+	position: absolute;
+	margin-top: -2000px;
+}
+
+#il_prop_cont_use_placeholders {
+	display:none;
+}
+
+.freib-psy-student-mail .il-mainbar-slates {
+	display:none !important;
+}
+
+.il-maincontrols-mainbar {
+	grid-template-columns: 80px 0px !important;
+	width: 80px !important;
+}
+
+.il-mainbar-tools-button {
+	display: none;
+}

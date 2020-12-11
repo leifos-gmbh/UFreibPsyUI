@@ -226,26 +226,33 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
                             $notification = new \ILIAS\Mail\Provider\MailNotificationProvider($DIC);
                             $ui_renderer = $DIC->ui()->renderer();
 
-                            foreach ($notification->getNotifications() as $isItem)
-                            {
+                            $description = "";
+                            foreach ($notification->getNotifications() as $isItem) {
                                 $item_renderer = $isItem->getRenderer($ui_factory);
                                 $comp = $item_renderer->getNotificationComponentForItem($isItem);
                                 $contents = $comp->getContents();
-
-
-                                $icon = $ui_factory->symbol()->icon()->standard(Standard::MAIL, 'mail')
-                                                  ->withIsOutlined(true);
-
-                                foreach ($contents as $content)
-                                {
-                                    if(!empty($content->getDescription()))
-                                    {
-                                        $stpl->setVariable("BODY_LEGACY", $ui_renderer->render($icon)  . " " . $content->getDescription());
-                                    }
+                                foreach ($contents as $content) {
+                                    $description = $content->getDescription();
                                 }
                             }
+                            if ($description == "") {
+                                $description = $this->getPluginObject()->txt("no_feebdack");
+                            }
 
-                            $main_tpl->setRightContent($stpl->get().$coach_cards);
+
+                            $icon = $ui_factory->symbol()->icon()->standard(Standard::MAIL, 'mail')
+                                              ->withIsOutlined(false)->withSize("large");
+
+                            $icon = $ui_factory->image()->standard(ilUtil::getImagePath("icon_mail.svg"), "Mail");
+                            $icon = $ui_renderer->render($icon);
+
+                            //if(!empty($content->getDescription()))
+                            $stpl->setVariable("BODY_LEGACY",
+                                "<h3>".$this->getPluginObject()->txt("ecoach_feedbacks")."</h3>".
+                                "<div class='row'><div class='col-xs-2 col-sm-5'>".$icon."</div>".
+                                "<div class='col-xs-10 col-sm-7 small'><p>"." " . $description."</p></div></div>");
+
+                            $main_tpl->setRightContent($coach_cards.$stpl->get());
                         }
                     }
 
@@ -429,32 +436,26 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
         $ui_renderer = $DIC->ui()->renderer();
 
         $coaches = $this->getCoaches();
+        $cards = "";
         foreach ($coaches as $coach)
         {
-            $card = $factory->card()->standard($coach->getPublicName());
+            $dep = ($coach->getDepartment() != "")
+                ? "<p>".$coach->getDepartment()."</p>"
+                : "";
             $avatar = $factory->image()->standard($coach->getPersonalPicturePath('big'), $coach->getPublicName());
-
-            //Bis zur finalen Entscheidung erstmal auskommentiert
-            /*if ($coach->hasPublicProfile()) {
-                $ctrl->setParameterByClass('ilpublicuserprofilegui', 'user', $coach->getId());
-                $public_profile_url = $ctrl->getLinkTargetByClass('ilpublicuserprofilegui', 'getHTML');
-
-                $modal = $factory->modal()->interruptive("Blub", "Blib", "#");
-
-                $avatar = $avatar->withAction($public_profile_url);
-                $card = $card->withTitleAction($modal->getShowSignal());
-            }*/
-
-            $card = $card->withImage($avatar);
-
-            $cards[] = $card;
+            $cards.= "<div class='row'><div class='col-xs-8 col-sm-6 small'><p>".
+                $coach->getUTitle()." ".$coach->getFirstname()." ".$coach->getLastname()."</p>".
+                $dep.
+                "<p>".$coach->getInstitution()."</p>".
+                "</div>".
+                "<div class='col-xs-4 col-sm-6 il-ecoaches'>".$ui_renderer->render($avatar)."</div></div>";
         }
 
         if(!empty($cards))
         {
-            $cards = $ui_renderer->render($factory->deck($cards)->withLargeCardsSize());
-            $cards = "<h3>E-Coaches</h3>".$cards;
-            return $cards;
+            $html = '<div class="panel panel-secondary panel-flex"><div class="panel-body">'.
+                "<h3>".$this->getPluginObject()->txt("e_coaches")."</h3>".$cards."</div></div>";
+            return $html;
         }
 
         return "";

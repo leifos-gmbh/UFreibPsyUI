@@ -7,3 +7,6 @@ edit_items#:#Objekte bearbeiten
 items#:#Objekte
 remove_course_config#:#Soll diese Kurskonfiguration wirklich entfernt werden?
 no_coaches_available#:#Ihnen wurde noch kein E-Coach zugeteilt.
+e_coaches#:#Mein E-Coach
+ecoach_feedbacks#:#Meine E-Coach Feedbacks
+no_feebdack#:#Sie haben keine ungelesenen Nachrichten.
