@@ -173,6 +173,8 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 	function getHTML($a_comp, $a_part, $a_par = array())
 	{
         global $DIC, $tpl;
+        $ctrl = $DIC->ctrl();
+
 
         if ($tpl)
         {
@@ -188,20 +190,27 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
 
 		if ($this->isStudyParticipant())
 		{
-            if ($a_comp == "" && $a_part == "template_get")
-            {
+            if ($a_comp == "" && $a_part == "template_get") {
+                $this->redirectToPassword();
                 $this->triggerMailReadEvent($a_par);
-                if ($a_par["tpl_id"] == "src/UI/templates/default/MainControls/tpl.metabar.html")
-                {
+                if ($a_par["tpl_id"] == "src/UI/templates/default/MainControls/tpl.metabar.html") {
                     $DIC->ui()->mainTemplate()->addCss($this->getPluginObject()->getStyleSheetLocation("freibpsy_restricted.css"));
                     $DIC->ui()->mainTemplate()->addJavaScript(
-                        $this->getPluginObject()->getDirectory()."/js/UFreibPsyUI.js");
+                        $this->getPluginObject()->getDirectory() . "/js/UFreibPsyUI.js");
                 }
 
-                if ($a_par["tpl_id"] == "Services/Locator/tpl.locator.html")
-                {
+                if ($a_par["tpl_id"] == "Services/Locator/tpl.locator.html") {
                     return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
                 }
+
+                if ($ctrl->getCmdClass() == "ilpersonalsettingsgui") {
+                    if (in_array($a_par["tpl_id"], array("Services/UIComponent/Tabs/tpl.tabs.html",
+                                                         "Services/UIComponent/Tabs/tpl.sub_tabs.html"
+                    ))) {
+                        return array("mode" => ilUIHookPluginGUI::REPLACE, "html" => "");
+                    }
+                }
+
 
                 if ($this->isCourseContentView())
                 {
@@ -474,6 +483,15 @@ class ilUFreibPsyUIUIHookGUI extends ilUIHookPluginGUI
                 'mail_id' => $mail_id,
                 'user_id' => $user_id
             ]);
+        }
+    }
+
+    protected function redirectToPassword() {
+        global $DIC;
+        $ctrl = $DIC->ctrl();
+        if ($ctrl->getCmdClass()=="ilpersonalsettingsgui" &&
+            in_array($ctrl->getCmd(), ["", "showGeneralSettings"])) {
+            $ctrl->redirectByClass("ilpersonalsettingsgui", "showPassword");
         }
     }
 }

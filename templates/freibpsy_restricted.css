@@ -122,3 +122,7 @@ input[name='cmd[saveDraft]'] {
 .il-mainbar-tools-button {
 	display: none;
 }
+
+.il-metabar-slates .il-maincontrols-slate-content a:first-child {
+	display:none;
+}
